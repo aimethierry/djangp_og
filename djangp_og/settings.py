@@ -9,6 +9,14 @@ https://docs.djangoproject.com/en/1.10/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
+from .emai_ino import EMAIL_USE_TLS, EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
+
+EMAIL_USE_TLS = EMAIL_USE_TLS
+EMAIL_HOST = EMAIL_HOST
+EMAIL_PORT = EMAIL_PORT
+EMAIL_HOST_USER = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
+
 
 import os
 
@@ -26,6 +34,7 @@ SECRET_KEY = 'f4-muw_kfk+cont0dtrr0&p^&oju(g2w%b4g5lryxo!hhs8pts'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
 
 
 # Application definition

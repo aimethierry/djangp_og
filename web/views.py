@@ -1,7 +1,12 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Project, UserProfile, User, Post, Answer
+from django.shortcuts import render, redirect, get_object_or_404,render_to_response
+from .models import Project, UserProfile, User, Post, Answer, Friendship
 from .forms import ProjectForm, UserForm, ProfileForm, PostForm, AnswerForm
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User 
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib import messages
+
 
 #home of the project
 def home(request):
@@ -13,11 +18,15 @@ def register(request):
     if request.method == 'POST':
         form = UserForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
+            save_it = form.save(commit=False)
+            save_it.save()
+            #send_mail(subject,sender, receiver, fail_silently=True)
+            subject = "Thank you for your registration "
+            message = "welcome to baza"
+            from_email = settings.EMAIL_HOST_USER
+            to_list = [save_it.email, settings.EMAIL_HOST_USER]
+            send_mail = (subject, message, )
+            messages.success(request, "Tkank you for your registration")
             return redirect('profile')
     else:
         form = UserForm()
@@ -58,9 +67,11 @@ def profile(request):
 #the real template of users
 def new(request):
     form = PostForm()
+    all_friend = User.objects.exclude(id=request.user.id)
     name = AnswerForm()
+    ok = UserProfile.objects.all()
     name = Post.objects.all().order_by('created_date').reverse()
-    return render(request, 'myblog/new.html',{'form':form, 'name':name })
+    return render(request, 'myblog/new.html',{'form':form, 'name':name,'ok':ok,'all_friend':all_friend })
 
 #the posted question
 def post_create(request):
@@ -81,6 +92,14 @@ def post_detail(request, pk):
     name = AnswerForm()
     return render(request, 'myblog/post_detail.html', {'post': post,'name':name})
 
+
+def view_profile(request,pk=None):
+    if pk:
+        user = user.objects.get(pk=pk)
+    else:
+        user =request.user
+    args={'user':user}
+    return render(request, 'myblog/post_detail.html', args)
 
 
 def answer(request):
@@ -110,5 +129,21 @@ def ok(request, pk):
     return render(request, 'myblog/n.html',{'form':form, 'post':post})
 
 def comment(request):
-    name = AnswerForm()
-    return render(request, 'myblog/n.html',{'name':name })
+    if request.method == "POST":
+        form = AnswerForm(request.POST, request.FILES)
+        if form.is_valid():
+            answer = form.save()
+            return redirect('post_detail')
+    else:
+        form = AnswerForm()
+    return render(request, 'myblog/n.html',{'form':form})
+
+def friends_page(request, username):
+  user = get_object_or_404(User, username=username)
+  friends = [friendship.to_friend
+             for friendship in user.friend_set.all()]
+  name = user.friend_set.all()
+
+  return render(request,'new.html', {'friends':friends, 'name':name})
+
+
